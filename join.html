@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭账户 · 扫码加入</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* 二维码扫描线动画 */
+  .scan-line {
+    position: absolute;
+    width: 100%; height: 2px;
+    background: var(--color-success);
+    box-shadow: 0 0 8px rgba(82,196,26,0.6);
+    top: 30%;
+    animation: scanDown 2s ease-in-out infinite;
+    z-index: 5;
+  }
+  @keyframes scanDown {
+    0%, 100% { top: 10%; }
+    50% { top: 85%; }
+  }
+
+  /* 海报背景 */
+  .join-poster {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F3EFE8 100%);
+    padding: var(--sp-lg) var(--sp-md);
+    text-align: center;
+    margin: var(--sp-md);
+    border-radius: var(--radius-lg);
+    position: relative;
+  }
+  .poster-placeholder-tag {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(0,0,0,0.06);
+    color: var(--color-placeholder);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+  .join-header-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--color-warm-bg);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto var(--sp-sm);
+    font-size: 28px;
+    box-shadow: none;
+  }
+  .join-header-title {
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    color: var(--color-title);
+    margin-bottom: var(--sp-xxs);
+  }
+  .join-header-sub {
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+    margin-bottom: var(--sp-md);
+  }
+
+  /* 家庭信息卡片 */
+  .join-family-card {
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--sp-md);
+    text-align: left;
+    margin-bottom: var(--sp-md);
+    box-shadow: var(--shadow-card);
+  }
+  .join-family-row {
+    display: flex; justify-content: space-between;
+    padding: var(--sp-xs) 0;
+    font-size: var(--fs-base);
+  }
+  .join-family-label { color: var(--color-secondary); }
+  .join-family-value { color: var(--color-title); font-weight: 500; }
+
+  /* 主号信息 */
+  .join-owner-row {
+    display: flex; align-items: center; gap: var(--sp-sm);
+    padding: var(--sp-sm) 0;
+    border-top: 0.5px solid var(--color-divider);
+    margin-top: var(--sp-xs);
+  }
+  .join-owner-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--color-warm-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .join-owner-name { font-size: var(--fs-base); font-weight: 500; }
+  .join-owner-tag { font-size: var(--fs-xs); color: var(--color-secondary); }
+
+  /* 留言区域 */
+  .join-message-section {
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--sp-md);
+    margin-bottom: var(--sp-md);
+    box-shadow: var(--shadow-card);
+  }
+  .join-message-label {
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+    margin-bottom: var(--sp-xs);
+  }
+  .join-message-textarea {
+    width: 100%;
+    padding: var(--sp-sm);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-base);
+    font-family: var(--font-cn);
+    resize: none;
+    min-height: 80px;
+    outline: none;
+    color: var(--color-body);
+  }
+  .join-message-textarea:focus {
+    border-color: var(--color-primary);
+  }
+  .join-message-hint {
+    font-size: var(--fs-xs);
+    color: var(--color-placeholder);
+    text-align: right;
+    margin-top: var(--sp-xxs);
+  }
+
+  /* 底部 */
+  .join-bottom {
+    padding: var(--sp-md);
+    background: var(--color-white);
+    border-top: 0.5px solid var(--color-divider);
+  }
+  .join-notice {
+    text-align: center;
+    font-size: var(--fs-xs);
+    color: var(--color-secondary);
+    margin-bottom: var(--sp-sm);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- 导航栏 -->
+  <div class="navbar">
+    <button class="navbar-back">←</button>
+    <div class="navbar-title">加入家庭</div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- 海报背景 -->
+    <div class="join-poster">
+      <div class="poster-placeholder-tag">运营海报背景位</div>
+
+      <div class="join-header-icon">🏠</div>
+      <div class="join-header-title">加入「快乐一家」</div>
+      <div class="join-header-sub">和全家人一起共享家庭储值</div>
+
+      <!-- 家庭信息 -->
+      <div class="join-family-card">
+        <div class="join-family-row">
+          <span class="join-family-label">家庭名称</span>
+          <span class="join-family-value">快乐一家</span>
+        </div>
+        <div class="join-family-row">
+          <span class="join-family-label">当前成员</span>
+          <span class="join-family-value">3 人</span>
+        </div>
+        <div class="join-owner-row">
+          <div class="join-owner-avatar">🧑</div>
+          <div>
+            <div class="join-owner-name">小明</div>
+            <div class="join-owner-tag">家庭主号</div>
+          </div>
+          <div style="flex:1;text-align:right;font-size:var(--fs-sm);color:var(--color-title);font-weight:700;">邀请你加入</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 申请留言 -->
+    <div class="join-message-section" style="margin: var(--sp-md);">
+      <div class="join-message-label">申请留言（选填）</div>
+      <textarea class="join-message-textarea" id="joinMessage" placeholder="跟主号打个招呼吧~&#10;例如：我是妈妈，拉我进家庭~" maxlength="100"></textarea>
+      <div class="join-message-hint"><span id="charCount">0</span>/100</div>
+    </div>
+
+  </div>
+
+  <!-- 底部按钮 -->
+  <div class="join-bottom">
+    <button class="btn btn-primary btn-block" onclick="handleApply()">申请加入</button>
+  </div>
+
+  <!-- 申请成功弹窗 -->
+  <div class="overlay" id="successOverlay" style="display:none;">
+    <div class="overlay-content" style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:var(--sp-sm);">✅</div>
+      <div style="font-size:var(--fs-lg);font-weight:700;color:var(--color-title);margin-bottom:var(--sp-xs);">申请已提交</div>
+      <div style="font-size:var(--fs-base);color:var(--color-secondary);margin-bottom:var(--sp-lg);">请等待主号小明审批</div>
+      <button class="btn btn-primary btn-block" onclick="closeSuccess()">知道了</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const textarea = document.getElementById('joinMessage');
+const charCount = document.getElementById('charCount');
+textarea.addEventListener('input', function() {
+  charCount.textContent = this.value.length;
+});
+
+function handleApply() {
+  document.getElementById('successOverlay').style.display = 'flex';
+}
+
+function closeSuccess() {
+  document.getElementById('successOverlay').style.display = 'none';
+  window.location.href = 'dashboard.html';
+}
+</script>
+
+</body>
+</html>

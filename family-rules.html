@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭账户 · 规则说明</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .rules-section {
+    padding: var(--sp-md);
+  }
+  .rules-section h3 {
+    font-size: var(--fs-md);
+    color: var(--color-title);
+    margin-top: var(--sp-lg);
+    margin-bottom: var(--sp-sm);
+  }
+  .rules-section h3:first-child { margin-top: 0; }
+  .rules-section p {
+    font-size: var(--fs-base);
+    color: var(--color-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--sp-sm);
+  }
+  .rules-section ul {
+    padding-left: var(--sp-md);
+    margin-bottom: var(--sp-sm);
+  }
+  .rules-section li {
+    font-size: var(--fs-base);
+    color: var(--color-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--sp-xs);
+  }
+  .highlight {
+    background: var(--color-warm-bg);
+    padding: var(--sp-sm) var(--sp-md);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-primary);
+    margin-bottom: var(--sp-sm);
+  }
+  .highlight p { margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="navbar">
+    <button class="navbar-back" onclick="history.back()">←</button>
+    <div class="navbar-title">家庭账户规则</div>
+  </div>
+
+  <div class="page-content">
+    <div class="rules-section">
+
+      <h3>一、什么是家庭账户</h3>
+      <p>家庭账户是一个家庭关系容器，用于共享储值余额。创建家庭后，成员的个人储值卡余额共同组成家庭储值余额，全家共享使用。家庭账户不改变原有会员体系。</p>
+
+      <h3>二、家庭成员</h3>
+      <ul>
+        <li>每个家庭上限 8 人（1 位主号 + 最多 7 名成员）。</li>
+        <li>一个会员同时只能属于一个家庭。</li>
+        <li>主号拥有管理权限，包括邀请成员、解绑成员、解散家庭等。</li>
+        <li>成员可主动退出家庭，退出后个人储值余额归自己所有。</li>
+      </ul>
+
+      <h3>三、扣款规则</h3>
+      <div class="highlight">
+        <p><strong>优先扣自己的储值 → 不足时按充值时间从早到晚扣其他成员的储值</strong></p>
+      </div>
+      <ul>
+        <li>消费时优先扣除消费者自己的储值卡余额。</li>
+        <li>自己余额不足时，从所有其他家庭成员的储值卡中按充值时间全局排序，逐笔扣减。</li>
+        <li>家庭储值余额全部扣完后，差额由用户自选微信/支付宝补齐。</li>
+      </ul>
+
+      <h3>四、积分规则</h3>
+      <p>积分跟着扫码人走，不看来钱来源。无论扣的是谁的储值金，积分全部归属于出示会员码消费的人。</p>
+
+      <h3>五、额度管控</h3>
+      <ul>
+        <li>主号可设置每日扣减上限，限制本日从其他家庭成员储值金扣减的总额。</li>
+        <li>超过上限后，本日不再从其他成员储值金扣减，差额需自行支付。</li>
+        <li>扣减上限不影响消费人自己储值卡的正常消费。</li>
+      </ul>
+
+      <h3>六、消费明细</h3>
+      <ul>
+        <li>所有成员可见涉及扣减（任一成员的钱被另一人使用）的消费明细。</li>
+        <li>仅展示最近 3 个月内的消费记录。</li>
+        <li>自己用自己的储值金消费，仅在自己的账单中查看。</li>
+      </ul>
+
+      <h3>七、解散家庭</h3>
+      <ul>
+        <li>仅主号可解散家庭，解散立即生效。</li>
+        <li>解散后所有成员不能再使用家庭账户消费。</li>
+        <li>各成员储值卡余额回归个人账户。</li>
+        <li>解散后系统会短信通知每一位家庭成员。</li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

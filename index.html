@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭账户 · 原型目录</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  body { align-items: center; }
+  .nav-list { padding: var(--sp-lg) 0; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: var(--sp-md);
+    border-bottom: 0.5px solid var(--color-divider);
+    color: var(--color-title);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .nav-item:hover, .nav-item:active { background: var(--color-bg); }
+  .nav-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--color-title);
+    color: var(--color-white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--fs-sm); font-weight: 700;
+    margin-right: var(--sp-sm);
+    flex-shrink: 0;
+  }
+  .nav-arrow { color: var(--color-placeholder); margin-left: auto; }
+  .header-card {
+    background: var(--color-white);
+    color: var(--color-title);
+    padding: var(--sp-lg) var(--sp-md);
+    text-align: center;
+  }
+  .header-card h1 { font-size: var(--fs-lg); margin-bottom: var(--sp-xxs); }
+  .flow-section {
+    margin: var(--sp-md);
+    padding: var(--sp-sm) var(--sp-md);
+    background: var(--color-warm-bg);
+    border-radius: var(--radius-md);
+  }
+  .flow-section h3 {
+    font-size: var(--fs-sm);
+    color: var(--color-primary);
+    margin-bottom: var(--sp-xs);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="header-card">
+    <h1>🏠 家庭账户原型</h1>
+    <div class="text-sm" style="opacity:0.8;">v0.1 · 7个页面 · 3条流程线</div>
+  </div>
+
+  <div class="page-content">
+
+    <div class="flow-section">
+      <h3>📌 创建线：入口 → 落地页 → 看板</h3>
+    </div>
+    <a class="nav-item" href="landing.html">
+      <span class="nav-num">1</span>落地介绍页 <span class="nav-arrow">→</span>
+    </a>
+    <a class="nav-item" href="dashboard.html">
+      <span class="nav-num">2</span>家庭看板 <span class="nav-arrow">→</span>
+    </a>
+
+    <div class="flow-section">
+      <h3>📌 邀请线：二维码 → 扫码加入</h3>
+    </div>
+    <a class="nav-item" href="invite-qr.html">
+      <span class="nav-num">3</span>邀请二维码页 <span class="nav-arrow">→</span>
+    </a>
+    <a class="nav-item" href="join.html">
+      <span class="nav-num">4</span>扫码加入页 <span class="nav-arrow">→</span>
+    </a>
+
+    <div class="flow-section">
+      <h3>📌 使用/管理线：消费明细 · 设置 · 支付</h3>
+    </div>
+    <a class="nav-item" href="transactions.html">
+      <span class="nav-num">5</span>消费明细页 <span class="nav-arrow">→</span>
+    </a>
+    <a class="nav-item" href="settings-panel.html">
+      <span class="nav-num">6</span>设置浮层 <span class="nav-arrow">→</span>
+    </a>
+    <a class="nav-item" href="payment-dialog.html">
+      <span class="nav-num">7</span>支付确认弹窗 <span class="nav-arrow">→</span>
+    </a>
+
+  </div>
+</div>
+
+</body>
+</html>

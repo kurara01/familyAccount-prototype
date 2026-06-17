@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭账户 · 设置</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* 看板背景（模拟半透明上下文） */
+  .backdrop {
+    background: linear-gradient(180deg, #F6F3EF 0%, #F3F3F3 45%, #FFFFFF 100%);
+    min-height: 812px;
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .backdrop-content {
+    flex: 1;
+    padding: var(--sp-md);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .mock-balance {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-md);
+    color: var(--color-title);
+    margin-bottom: var(--sp-md);
+  }
+  .mock-balance .num { font-size: 32px; }
+  .mock-row {
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--sp-sm);
+    margin-bottom: var(--sp-xs);
+    color: var(--color-body);
+    display: flex; align-items: center; gap: var(--sp-sm);
+  }
+  .mock-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--color-warm-bg); }
+
+  /* 设置浮层 */
+  .settings-sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    border-radius: 18px 18px 0 0;
+    padding: 0;
+    z-index: 10;
+    animation: sheetUp 0.35s ease-out;
+    max-height: 82vh;
+    overflow-y: auto;
+  }
+  @keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* 浮层拖拽条 */
+  .sheet-handle {
+    width: 36px; height: 4px;
+    border-radius: 2px;
+    background: var(--color-divider);
+    margin: 8px auto 0;
+  }
+  .sheet-header {
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--sp-sm) var(--sp-md);
+    position: relative;
+    border-bottom: 0.5px solid var(--color-divider);
+  }
+  .sheet-title {
+    font-size: var(--fs-md);
+    font-weight: 700;
+    color: var(--color-title);
+  }
+  .sheet-close {
+    position: absolute;
+    right: var(--sp-md);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--color-panel);
+    border: none;
+    font-size: var(--fs-md);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--color-secondary);
+  }
+
+  /* 设置项 */
+  .setting-group {
+    padding: var(--sp-xs) 0;
+    background: var(--color-white);
+    margin-bottom: var(--sp-xs);
+  }
+  .setting-group-title {
+    font-size: var(--fs-xs);
+    color: var(--color-placeholder);
+    padding: var(--sp-sm) var(--sp-md) var(--sp-xs);
+    text-transform: uppercase;
+  }
+  .setting-row {
+    display: flex; align-items: center;
+    padding: var(--sp-sm) var(--sp-md);
+    background: var(--color-white);
+    cursor: pointer;
+    transition: background 0.15s;
+    min-height: 48px;
+  }
+  .setting-row:active { background: var(--color-bg); }
+  .setting-row-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: var(--sp-sm);
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .setting-row-content { flex: 1; min-width: 0; }
+  .setting-row-label { font-size: var(--fs-base); color: var(--color-title); }
+  .setting-row-desc { font-size: var(--fs-xs); color: var(--color-placeholder); }
+  .setting-row-value {
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+    margin-right: var(--sp-xs);
+  }
+  .setting-row-arrow { color: var(--color-placeholder); }
+  .setting-row .red-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--color-error);
+    margin-left: var(--sp-xs);
+  }
+
+  /* 审批行 */
+  .setting-row-approval {
+    position: relative;
+  }
+  .approval-badge {
+    background: var(--color-error);
+    color: var(--color-white);
+    font-size: 10px;
+    min-width: 18px; height: 18px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: var(--sp-xs);
+    font-weight: 600;
+  }
+
+  /* 编辑名称对话框 */
+  .edit-name-dialog {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 20;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .edit-name-dialog.show { display: flex; }
+  .edit-name-card {
+    width: 300px;
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-md);
+    text-align: center;
+  }
+  .edit-name-card h3 {
+    font-size: var(--fs-md);
+    margin-bottom: var(--sp-md);
+    color: var(--color-title);
+  }
+  .edit-name-card .edit-input {
+    margin-bottom: var(--sp-md);
+  }
+  .edit-name-card .btn-group {
+    display: flex; gap: var(--sp-sm);
+  }
+
+  /* 成员管理子页 */
+  .member-mgmt-section {
+    padding: var(--sp-xs) var(--sp-md);
+  }
+  .member-mgmt-item {
+    display: flex; align-items: center;
+    padding: var(--sp-sm) 0;
+    border-bottom: 0.5px solid var(--color-divider);
+  }
+  .member-mgmt-item:last-child { border-bottom: none; }
+  .member-mgmt-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--color-divider);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-right: var(--sp-sm);
+  }
+  .member-mgmt-info { flex: 1; }
+  .member-mgmt-name { font-size: var(--fs-base); font-weight: 500; }
+  .member-mgmt-role { font-size: var(--fs-xs); color: var(--color-placeholder); }
+  .btn-remove {
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+    font-size: var(--fs-xs);
+    background: none;
+    cursor: pointer;
+  }
+  .btn-remove:hover { background: rgba(255,77,79,0.06); }
+  .member-mgmt-count {
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+    padding: var(--sp-sm) 0;
+    text-align: center;
+  }
+
+  /* 身份标识标签 */
+  .identity-tag {
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--fs-xs);
+    background: var(--color-warm-bg);
+    color: var(--color-title);
+    cursor: pointer;
+    border: 1px dashed #D8CBB8;
+    transition: all 0.15s;
+    margin-top: 2px;
+  }
+  .identity-tag:hover { background: #E8E1D8; }
+  .identity-tag::after { content: ' ▾'; font-size: 8px; opacity: 0.5; }
+
+  /* 身份选择弹窗 */
+  .identity-picker {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 20;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .identity-picker.show { display: flex; }
+  .identity-picker-card {
+    width: 280px;
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-md);
+    text-align: center;
+  }
+  .identity-picker-card h3 {
+    font-size: var(--fs-md);
+    margin-bottom: var(--sp-sm);
+    color: var(--color-title);
+  }
+  .identity-picker-card .member-name { font-size: var(--fs-sm); color: var(--color-secondary); margin-bottom: var(--sp-sm); }
+  .identity-options {
+    display: flex; flex-wrap: wrap; gap: var(--sp-xs);
+    justify-content: center;
+    margin-bottom: var(--sp-md);
+  }
+  .identity-option {
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: var(--fs-sm);
+    border: 1px solid var(--color-divider);
+    background: var(--color-white);
+    color: var(--color-body);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-cn);
+  }
+  .identity-option:hover { border-color: var(--color-primary); }
+  .identity-option.selected {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+  }
+  .identity-option.none { color: var(--color-placeholder); font-style: italic; }
+
+  /* 限额模式切换（两段式） */
+  .limit-mode-toggle {
+    display: flex;
+    background: var(--color-panel);
+    border-radius: var(--radius-md);
+    padding: 3px;
+    margin-bottom: var(--sp-sm);
+  }
+  .limit-mode-option {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    font-size: var(--fs-sm);
+    border-radius: calc(var(--radius-md) - 2px);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-secondary);
+    font-family: var(--font-cn);
+  }
+  .limit-mode-option.active {
+    background: var(--color-white);
+    color: var(--color-title);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  /* 周期选择器 */
+  .period-selector {
+    display: flex;
+    gap: var(--sp-xs);
+    margin-bottom: var(--sp-sm);
+  }
+  .period-option {
+    flex: 1;
+    text-align: center;
+    padding: 6px 0;
+    font-size: var(--fs-sm);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-divider);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--color-secondary);
+    font-family: var(--font-cn);
+  }
+  .period-option.active {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+  }
+
+  /* 限额配置区 */
+  .limit-config { display: none; }
+  .limit-config.show { display: block; }
+  .limit-hint {
+    font-size: var(--fs-xs);
+    color: var(--color-placeholder);
+    margin-top: var(--sp-xs);
+    line-height: 1.5;
+  }
+
+  /* 金额输入 */
+  .limit-input-group {
+    display: flex; align-items: center; gap: var(--sp-sm);
+    padding: var(--sp-sm) var(--sp-md);
+  }
+  .limit-input {
+    width: 100px;
+    height: 40px;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+    padding: 0 var(--sp-sm);
+    font-size: var(--fs-md);
+    font-family: var(--font-num);
+    font-weight: 700;
+    text-align: center;
+    color: var(--color-title);
+    outline: none;
+  }
+  .limit-input:focus { border-color: var(--color-primary); }
+
+  /* 解散确认 */
+  .danger-zone {
+    padding: var(--sp-md);
+    border-top: 6px solid var(--color-bg);
+    margin-top: var(--sp-sm);
+    background: var(--color-white);
+  }
+  .danger-zone-title {
+    font-size: var(--fs-sm);
+    color: var(--color-placeholder);
+    margin-bottom: var(--sp-sm);
+  }
+
+  /* 审批列表 */
+  .approval-list {
+    padding: var(--sp-xs) var(--sp-md);
+  }
+  .approval-item {
+    display: flex; align-items: center;
+    padding: var(--sp-sm) 0;
+    border-bottom: 0.5px solid var(--color-divider);
+    gap: var(--sp-sm);
+  }
+  .approval-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--color-divider);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .approval-info { flex: 1; min-width: 0; }
+  .approval-name { font-size: var(--fs-base); font-weight: 500; }
+  .approval-msg { font-size: var(--fs-sm); color: var(--color-secondary); margin-top: 2px; }
+  .approval-actions { display: flex; gap: var(--sp-xs); flex-shrink: 0; }
+
+  .confirm-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 30;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .confirm-overlay.show { display: flex; }
+  .confirm-card {
+    width: 290px;
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-md);
+    text-align: center;
+  }
+  .confirm-card h3 { font-size: var(--fs-md); margin-bottom: var(--sp-xs); color: var(--color-title); }
+  .confirm-card p { font-size: var(--fs-sm); color: var(--color-secondary); margin-bottom: var(--sp-md); line-height: 1.5; }
+  .confirm-card .btn-group { display: flex; gap: var(--sp-sm); }
+</style>
+</head>
+<body>
+
+<div class="phone-frame" style="position:relative;">
+
+  <!-- 模拟看板背景 -->
+  <div class="backdrop">
+    <div class="navbar" style="background:transparent;border:none;color:var(--color-title);">
+      <button class="navbar-back" onclick="window.location.href='dashboard.html'" style="color:var(--color-title);">←</button>
+      <div class="navbar-title" style="color:var(--color-title);">会员中心</div>
+    </div>
+    <div class="backdrop-content">
+      <div class="mock-balance">
+        <div style="font-size:12px;color:var(--color-secondary);">家庭储值余额</div>
+        <div class="num">1,130 元</div>
+      </div>
+      <div class="mock-row"><div class="mock-avatar"></div>小明 · ¥500</div>
+      <div class="mock-row"><div class="mock-avatar"></div>小红 · ¥300</div>
+      <div class="mock-row"><div class="mock-avatar"></div>大刚 · ¥200</div>
+      <div class="mock-row"><div class="mock-avatar"></div>小宝 · ¥50</div>
+      <div class="mock-row"><div class="mock-avatar"></div>小花 · ¥80</div>
+    </div>
+  </div>
+
+  <!-- ===== 设置浮层 ===== -->
+  <div class="settings-sheet" id="settingsSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">家庭设置</span>
+      <button class="sheet-close" onclick="window.location.href='dashboard.html'">✕</button>
+    </div>
+
+    <!-- 家庭信息 -->
+    <div class="setting-group">
+      <div class="setting-row" onclick="showEditName()">
+        <div class="setting-row-icon" style="background:var(--color-warm-bg);">✏️</div>
+        <div class="setting-row-content">
+          <div class="setting-row-label">家庭名称</div>
+          <div class="setting-row-desc" id="currentFamilyName">快乐一家</div>
+        </div>
+        <span class="setting-row-arrow">→</span>
+      </div>
+    </div>
+
+    <!-- 成员管理 -->
+    <div class="setting-group">
+      <div class="setting-row" onclick="toggleMemberSection()">
+        <div class="setting-row-icon" style="background:var(--color-warm-bg);">👥</div>
+        <div class="setting-row-content">
+          <div class="setting-row-label">成员管理</div>
+          <div class="setting-row-desc">已加入 5 人，还可邀请 3 人</div>
+        </div>
+        <span class="setting-row-arrow" id="memberArrow">↓</span>
+      </div>
+      <div class="member-mgmt-section" id="memberSection" style="display:none;">
+        <div class="member-mgmt-item">
+          <div class="member-mgmt-avatar">🧑</div>
+          <div class="member-mgmt-info">
+            <div class="member-mgmt-name">小明 <span class="tag tag-primary" style="font-size:9px;">主号</span></div>
+            <div class="identity-tag" onclick="showIdentityPicker('小明', this)">爸爸</div>
+          </div>
+          <span style="font-size:11px;color:var(--color-placeholder);">自己</span>
+        </div>
+        <div class="member-mgmt-item">
+          <div class="member-mgmt-avatar">👩</div>
+          <div class="member-mgmt-info">
+            <div class="member-mgmt-name">小红</div>
+            <div class="identity-tag" onclick="showIdentityPicker('小红', this)">妈妈</div>
+          </div>
+          <button class="btn-remove" onclick="showConfirm('remove','小红')">解绑</button>
+        </div>
+        <div class="member-mgmt-item">
+          <div class="member-mgmt-avatar">👨‍🦳</div>
+          <div class="member-mgmt-info">
+            <div class="member-mgmt-name">大刚</div>
+            <div class="identity-tag" onclick="showIdentityPicker('大刚', this)">爷爷</div>
+          </div>
+          <button class="btn-remove" onclick="showConfirm('remove','大刚')">解绑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 审批 -->
+    <div class="setting-group">
+      <div class="setting-row" onclick="toggleApprovalSection()">
+        <div class="setting-row-icon" style="background:rgba(255,77,79,0.08);">📋</div>
+        <div class="setting-row-content">
+          <div class="setting-row-label" style="display:flex;align-items:center;gap:6px;">
+            待审批申请
+            <span class="approval-badge">1</span>
+          </div>
+          <div class="setting-row-desc">有新成员申请加入</div>
+        </div>
+        <span class="setting-row-arrow" id="approvalArrow">↓</span>
+      </div>
+      <div class="approval-list" id="approvalSection" style="display:none;">
+        <div class="approval-item">
+          <div class="approval-avatar">👵</div>
+          <div class="approval-info">
+            <div class="approval-name">王妈妈</div>
+            <div class="approval-msg">留言：我是奶奶，帮忙照顾孩子，拉我进家庭~</div>
+          </div>
+          <div class="approval-actions">
+            <button class="btn btn-sm btn-primary" onclick="approve('王妈妈')">通过</button>
+            <button class="btn btn-sm btn-secondary" onclick="reject('王妈妈')">拒绝</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 消费管控 -->
+    <div class="setting-group">
+      <div class="setting-row" onclick="toggleLimitSection()">
+        <div class="setting-row-icon" style="background:rgba(250,173,20,0.1);">💰</div>
+        <div class="setting-row-content">
+          <div class="setting-row-label">储值使用限额</div>
+          <div class="setting-row-desc" id="limitSummary">使用他人储值金 · 不限额</div>
+        </div>
+        <span class="setting-row-value num" id="currentLimitDisplay"></span>
+        <span class="setting-row-arrow" id="limitArrow">↓</span>
+      </div>
+      <div id="limitSection" style="display:none;padding: var(--sp-sm) var(--sp-md);">
+        <!-- 不限额 / 限额 切换 -->
+        <div class="limit-mode-toggle" id="limitModeToggle">
+          <div class="limit-mode-option active" data-mode="unlimited" onclick="switchLimitMode('unlimited')">不限额</div>
+          <div class="limit-mode-option" data-mode="limited" onclick="switchLimitMode('limited')">限额</div>
+        </div>
+
+        <!-- 限额配置（默认隐藏） -->
+        <div class="limit-config" id="limitConfig">
+          <div class="period-selector" id="periodSelector">
+            <div class="period-option active" data-period="day" onclick="switchPeriod('day')">每日</div>
+            <div class="period-option" data-period="week" onclick="switchPeriod('week')">每周</div>
+            <div class="period-option" data-period="month" onclick="switchPeriod('month')">每月</div>
+          </div>
+          <div class="limit-input-group">
+            <span>¥</span>
+            <input class="limit-input" type="number" id="limitInput" value="200" min="1" step="1">
+            <span>元</span>
+            <button class="btn btn-sm btn-primary" onclick="saveLimit()">保存</button>
+          </div>
+          <div class="limit-hint" id="limitHint">设置后，每日每名家庭成员从他人储值金扣减的合计金额不超过 ¥200</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 家庭账户规则 -->
+    <div class="setting-group">
+      <div class="setting-row" onclick="openRules()">
+        <div class="setting-row-icon" style="background:rgba(24,144,255,0.08);">📄</div>
+        <div class="setting-row-content">
+          <div class="setting-row-label">家庭账户规则</div>
+          <div class="setting-row-desc">查看储值共享、扣款顺序等规则说明</div>
+        </div>
+        <span class="setting-row-arrow">→</span>
+      </div>
+    </div>
+
+    <!-- 危险操作 -->
+    <div class="danger-zone">
+      <!-- 退出家庭（非主号） -->
+      <div class="setting-row" onclick="showConfirm('leave')" style="padding:var(--sp-sm) 0;">
+        <div class="setting-row-icon" style="background:rgba(255,77,79,0.06);color:var(--color-placeholder);">🚪</div>
+        <div class="setting-row-content">
+          <div class="setting-row-label" style="color:var(--color-placeholder);">退出家庭</div>
+          <div class="setting-row-desc">退出后你的储值卡余额归你所有</div>
+        </div>
+        <span class="setting-row-arrow">→</span>
+      </div>
+
+      <div class="setting-row" onclick="showConfirm('dissolve')" style="padding:var(--sp-sm) 0;">
+        <div class="setting-row-icon" style="background:rgba(255,77,79,0.08);color:var(--color-error);">⚠️</div>
+        <div class="setting-row-content">
+          <div class="setting-row-label" style="color:var(--color-error);">解散家庭</div>
+          <div class="setting-row-desc">解散后所有成员无法使用家庭账户消费</div>
+        </div>
+        <span class="setting-row-arrow" style="color:var(--color-error);">→</span>
+      </div>
+    </div>
+
+    <div style="height:40px;"></div>
+  </div>
+
+  <!-- 编辑名称弹窗 -->
+  <div class="edit-name-dialog" id="editNameDialog">
+    <div class="edit-name-card">
+      <h3>修改家庭名称</h3>
+      <input class="input" style="text-align:center;" id="nameInput" value="快乐一家" maxlength="20">
+      <div style="font-size:11px;color:var(--color-placeholder);margin-bottom:var(--sp-md);"><span id="nameCharCount">4</span>/20</div>
+      <div class="btn-group">
+        <button class="btn btn-secondary btn-block" style="flex:1;" onclick="closeEditName()">取消</button>
+        <button class="btn btn-primary btn-block" style="flex:1;" onclick="saveName()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 身份选择弹窗 -->
+  <div class="identity-picker" id="identityPicker">
+    <div class="identity-picker-card">
+      <h3>选择家庭身份</h3>
+      <div class="member-name" id="identityPickerName"></div>
+      <div class="identity-options" id="identityOptions"></div>
+      <button class="btn btn-primary btn-block" onclick="closeIdentityPicker()">确定</button>
+    </div>
+  </div>
+
+  <!-- 确认弹窗 -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-card">
+      <h3 id="confirmTitle">确认操作</h3>
+      <p id="confirmMsg"></p>
+      <div class="btn-group">
+        <button class="btn btn-secondary btn-block" style="flex:1;" onclick="closeConfirm()">取消</button>
+        <button class="btn btn-danger btn-block" style="flex:1;" id="confirmBtn">确认</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// --- 身份选择 ---
+const IDENTITIES = ['爸爸', '妈妈', '儿子', '女儿', '爷爷', '奶奶', '外公', '外婆', '哥哥', '姐姐', '弟弟', '妹妹', '不设置'];
+let currentIdentityTarget = null;
+
+function showIdentityPicker(name, tagEl) {
+  currentIdentityTarget = tagEl;
+  document.getElementById('identityPickerName').textContent = '为 ' + name + ' 选择身份';
+  const current = tagEl.textContent.trim();
+  const optionsEl = document.getElementById('identityOptions');
+  optionsEl.innerHTML = IDENTITIES.map(id => {
+    const cls = 'identity-option' + (id === current ? ' selected' : '') + (id === '不设置' ? ' none' : '');
+    return `<span class="${cls}" onclick="selectIdentity(this, '${id}')">${id}</span>`;
+  }).join('');
+  document.getElementById('identityPicker').classList.add('show');
+}
+
+function selectIdentity(el, identity) {
+  document.querySelectorAll('.identity-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el._selectedIdentity = identity;
+}
+
+function closeIdentityPicker() {
+  const selected = document.querySelector('.identity-option.selected');
+  if (selected && currentIdentityTarget) {
+    const identity = selected._selectedIdentity || selected.textContent.trim();
+    currentIdentityTarget.textContent = identity === '不设置' ? '未设置' : identity;
+    currentIdentityTarget.style.color = identity === '不设置' ? 'var(--color-placeholder)' : '';
+  }
+  document.getElementById('identityPicker').classList.remove('show');
+  currentIdentityTarget = null;
+}
+
+// --- 名称编辑 ---
+function showEditName() {
+  document.getElementById('nameInput').value = document.getElementById('currentFamilyName').textContent;
+  document.getElementById('nameCharCount').textContent = document.getElementById('nameInput').value.length;
+  document.getElementById('editNameDialog').classList.add('show');
+}
+function closeEditName() {
+  document.getElementById('editNameDialog').classList.remove('show');
+}
+function saveName() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (name) {
+    document.getElementById('currentFamilyName').textContent = name;
+    closeEditName();
+  }
+}
+document.getElementById('nameInput').addEventListener('input', function() {
+  document.getElementById('nameCharCount').textContent = this.value.length;
+});
+
+// --- 展开/收起 ---
+function openRules() {
+  window.open('family-rules.html', '_blank');
+}
+function toggleMemberSection() {
+  const el = document.getElementById('memberSection');
+  const arrow = document.getElementById('memberArrow');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  arrow.textContent = el.style.display === 'none' ? '↓' : '↑';
+}
+function toggleApprovalSection() {
+  const el = document.getElementById('approvalSection');
+  const arrow = document.getElementById('approvalArrow');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  arrow.textContent = el.style.display === 'none' ? '↓' : '↑';
+}
+function toggleLimitSection() {
+  const el = document.getElementById('limitSection');
+  const arrow = document.getElementById('limitArrow');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  arrow.textContent = el.style.display === 'none' ? '↓' : '↑';
+}
+
+// --- 储值使用限额 ---
+let limitMode = 'unlimited';    // 'unlimited' | 'limited'
+let limitPeriod = 'day';        // 'day' | 'week' | 'month'
+let limitAmount = 200;
+
+const PERIOD_LABELS = { day: '每日', week: '每周', month: '每月' };
+
+function switchLimitMode(mode) {
+  limitMode = mode;
+  // 切换两段式按钮
+  document.querySelectorAll('.limit-mode-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.mode === mode);
+  });
+  // 显示/隐藏限额配置区
+  const config = document.getElementById('limitConfig');
+  if (mode === 'limited') {
+    config.classList.add('show');
+    updateLimitHint();
+  } else {
+    config.classList.remove('show');
+    updateSummary();
+  }
+}
+
+function switchPeriod(period) {
+  limitPeriod = period;
+  document.querySelectorAll('.period-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.period === period);
+  });
+  updateLimitHint();
+}
+
+function updateLimitHint() {
+  const hint = document.getElementById('limitHint');
+  const label = PERIOD_LABELS[limitPeriod];
+  hint.textContent = '设置后，' + label + '每名家庭成员从他人储值金扣减的合计金额不超过 ¥' + limitAmount;
+}
+
+function updateSummary() {
+  const desc = document.getElementById('limitSummary');
+  const display = document.getElementById('currentLimitDisplay');
+  if (limitMode === 'unlimited') {
+    desc.textContent = '使用他人储值金 · 不限额';
+    display.textContent = '';
+  } else {
+    const label = PERIOD_LABELS[limitPeriod];
+    desc.textContent = '使用他人储值金 · ' + label + '限额 ¥' + limitAmount;
+    display.textContent = '¥' + limitAmount + '/' + (limitPeriod === 'day' ? '日' : limitPeriod === 'week' ? '周' : '月');
+  }
+}
+
+function saveLimit() {
+  limitAmount = parseInt(document.getElementById('limitInput').value) || 0;
+  if (limitAmount <= 0) {
+    document.getElementById('limitInput').value = 1;
+    limitAmount = 1;
+  }
+  updateLimitHint();
+  updateSummary();
+  toggleLimitSection();
+}
+
+// 初始化限额显示
+updateSummary();
+
+// --- 审批 ---
+function approve(name) {
+  alert('已通过 ' + name + ' 的申请');
+  document.getElementById('approvalSection').remove();
+  document.querySelector('.approval-badge').remove();
+}
+
+function reject(name) {
+  alert('已拒绝 ' + name + ' 的申请');
+  document.getElementById('approvalSection').remove();
+  document.querySelector('.approval-badge').remove();
+}
+
+// --- 确认弹窗 ---
+let confirmAction = null;
+function showConfirm(action, name) {
+  const overlay = document.getElementById('confirmOverlay');
+  const title = document.getElementById('confirmTitle');
+  const msg = document.getElementById('confirmMsg');
+  const btn = document.getElementById('confirmBtn');
+  if (action === 'dissolve') {
+    title.textContent = '解散家庭';
+    msg.textContent = '确定要解散「快乐一家」吗？解散后所有成员不能再使用家庭账户消费。此操作不可撤销。';
+    btn.textContent = '确认解散';
+    confirmAction = () => { alert('家庭已解散'); window.location.href='landing.html'; };
+  } else if (action === 'remove') {
+    title.textContent = '解绑成员';
+    msg.textContent = '确定要解绑「' + name + '」吗？解绑后该成员的储值卡余额归其个人所有。';
+    btn.textContent = '确认解绑';
+    confirmAction = () => { alert('已解绑 ' + name); closeConfirm(); };
+  } else if (action === 'leave') {
+    title.textContent = '退出家庭';
+    msg.textContent = '确定要退出「快乐一家」吗？退出后你的储值卡余额归你个人所有，你将无法使用家庭账户消费。';
+    btn.textContent = '确认退出';
+    confirmAction = () => { alert('已退出家庭'); window.location.href='landing.html'; };
+  }
+  overlay.classList.add('show');
+}
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  confirmAction = null;
+}
+document.getElementById('confirmBtn').addEventListener('click', function() {
+  if (confirmAction) confirmAction();
+});
+</script>
+
+</body>
+</html>

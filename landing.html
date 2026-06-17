@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭账户 · 落地介绍页</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .poster-section {
+    margin: var(--sp-md);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F4F1EC 100%);
+    position: relative;
+  }
+  .poster-img {
+    width: 100%;
+    height: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .poster-placeholder-tag {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(0,0,0,0.06);
+    color: var(--color-placeholder);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    pointer-events: none;
+  }
+  .poster-content {
+    text-align: center;
+    color: var(--color-title);
+  }
+  .poster-icon {
+    font-size: 72px;
+    margin-bottom: var(--sp-md);
+  }
+  .poster-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: var(--sp-xs);
+  }
+  .poster-sub {
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+  }
+
+  .bottom-action {
+    padding: var(--sp-md);
+    background: var(--color-white);
+    border-top: 0.5px solid var(--color-divider);
+    position: sticky;
+    bottom: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="navbar">
+    <button class="navbar-back" onclick="history.back()">←</button>
+    <div class="navbar-title">家庭账户</div>
+  </div>
+
+  <div class="page-content">
+    <div class="poster-section">
+      <div class="poster-placeholder-tag">运营海报位</div>
+      <div class="poster-img">
+        <div class="poster-content">
+          <div class="poster-icon" title="运营可配置">🏠</div>
+          <div class="poster-title" title="运营可配置">九木家庭账户</div>
+          <div class="poster-sub" title="运营可配置">家庭储值全家共享 · 支付更灵活</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-action">
+    <button class="btn btn-primary btn-block" onclick="handleCreate()">创建家庭组</button>
+  </div>
+</div>
+
+<script>
+function handleCreate() {
+  window.location.href = 'dashboard.html';
+}
+</script>
+
+</body>
+</html>

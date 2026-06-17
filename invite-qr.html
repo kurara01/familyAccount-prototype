@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭账户 · 邀请二维码</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .qr-section {
+    margin: var(--sp-md);
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  /* 海报背景区 */
+  .qr-poster {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F3EFE8 100%);
+    padding: var(--sp-lg) var(--sp-md);
+    text-align: center;
+    position: relative;
+    min-height: 580px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .poster-placeholder-tag {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(0,0,0,0.06);
+    color: var(--color-placeholder);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+  .qr-header {
+    margin-bottom: var(--sp-lg);
+  }
+  .qr-header-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--color-warm-bg);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto var(--sp-sm);
+    font-size: 28px;
+    box-shadow: none;
+  }
+  .qr-header-title {
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    color: var(--color-title);
+  }
+  .qr-header-sub {
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+    margin-top: var(--sp-xxs);
+  }
+
+  /* 二维码卡片 */
+  .qr-code-card {
+    background: var(--color-white);
+    padding: var(--sp-md);
+    border-radius: var(--radius-lg);
+    display: inline-block;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    margin-bottom: var(--sp-md);
+  }
+  .qr-code-canvas {
+    width: 200px;
+    height: 200px;
+    background: var(--color-white);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* 模拟二维码图案 */
+  .qr-pattern {
+    width: 180px; height: 180px;
+    position: relative;
+  }
+  .qr-pattern-inner {
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: 1px;
+  }
+  .qr-cell {
+    background: transparent;
+    border-radius: 1px;
+  }
+  .qr-cell.dark { background: var(--color-primary-dark); }
+
+  /* 三个定位框 */
+  .qr-finder {
+    position: absolute;
+    width: 40px; height: 40px;
+    border: 3px solid var(--color-primary-dark);
+    border-radius: 4px;
+  }
+  .qr-finder::after {
+    content: '';
+    position: absolute;
+    width: 24px; height: 24px;
+    background: var(--color-primary-dark);
+    top: 5px; left: 5px;
+    border-radius: 1px;
+  }
+  .qr-finder.top-left { top: 0; left: 0; }
+  .qr-finder.top-right { top: 0; right: 0; }
+  .qr-finder.bottom-left { bottom: 0; left: 0; }
+
+  /* 中心 Logo */
+  .qr-center-logo {
+    position: absolute;
+    width: 40px; height: 40px;
+    background: var(--color-white);
+    border-radius: 6px;
+    top: 70px; left: 70px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    font-size: 18px;
+  }
+
+  .qr-info-text {
+    font-size: var(--fs-sm);
+    color: var(--color-primary-dark);
+    margin-top: var(--sp-xs);
+  }
+
+  /* 提示文字 */
+  .qr-tips {
+    padding: var(--sp-md);
+    text-align: center;
+  }
+  .qr-tip-item {
+    display: flex; align-items: center; gap: var(--sp-xs);
+    padding: var(--sp-xs) 0;
+    color: var(--color-secondary);
+    font-size: var(--fs-sm);
+  }
+  .qr-tip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--color-title);
+    flex-shrink: 0;
+  }
+
+  /* 底部按钮 */
+  .qr-bottom {
+    padding: var(--sp-md);
+    background: var(--color-white);
+    border-top: 0.5px solid var(--color-divider);
+  }
+  .qr-bottom-btns {
+    display: flex; gap: var(--sp-sm);
+  }
+
+  /* 二维码刷新动画 */
+  .qr-refreshing {
+    position: absolute;
+    width: 100%; height: 100%;
+    top: 0; left: 0;
+    background: rgba(255,255,255,0.7);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-lg);
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- 导航栏 -->
+  <div class="navbar">
+    <button class="navbar-back" onclick="window.location.href='dashboard.html'">←</button>
+    <div class="navbar-title">邀请家人</div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- 海报背景 + 二维码 -->
+    <div class="qr-section">
+      <div class="qr-poster">
+        <div class="poster-placeholder-tag">运营海报背景位</div>
+
+        <div class="qr-header">
+          <div class="qr-header-icon">🏠</div>
+          <div class="qr-header-title">加入「快乐一家」</div>
+          <div class="qr-header-sub">扫码加入，共享家庭储值余额</div>
+        </div>
+
+        <!-- 二维码区域 -->
+        <div class="qr-code-card">
+          <div class="qr-code-canvas" id="qrCanvas">
+            <div class="qr-pattern">
+              <div class="qr-finder top-left"></div>
+              <div class="qr-finder top-right"></div>
+              <div class="qr-finder bottom-left"></div>
+              <div class="qr-pattern-inner" id="qrGrid"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="qr-info-text">二维码每 2 分钟自动刷新</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 底部操作 -->
+  <div class="qr-bottom">
+    <div class="qr-bottom-btns">
+      <button class="btn btn-primary btn-block" style="flex:1;" onclick="shareQR()">分享给微信好友</button>
+    </div>
+    <div style="text-align:center;margin-top:var(--sp-xs);">
+      <button class="btn btn-text" onclick="previewJoin()" style="font-size:var(--fs-sm);">👁 预览家人扫码后的页面</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 随机填充二维码方格（模拟）
+(function generateQR() {
+  const grid = document.getElementById('qrGrid');
+  if (!grid) return;
+  let html = '';
+  for (let i = 0; i < 81; i++) {
+    // 跳过定位框覆盖区域
+    const row = Math.floor(i / 9);
+    const col = i % 9;
+    const inFinder = (row < 3 && col < 3) || (row < 3 && col >= 6) || (row >= 6 && col < 3);
+    const isDark = inFinder ? false : Math.random() > 0.55;
+    html += `<div class="qr-cell${isDark ? ' dark' : ''}"></div>`;
+  }
+  grid.innerHTML = html;
+})();
+
+function shareQR() {
+  alert('模拟：分享二维码给微信好友');
+}
+
+function refreshQR() {
+  const canvas = document.getElementById('qrCanvas');
+  const refreshing = document.createElement('div');
+  refreshing.className = 'qr-refreshing';
+  refreshing.textContent = '正在刷新…';
+  canvas.appendChild(refreshing);
+  setTimeout(() => {
+    canvas.removeChild(refreshing);
+    (function generateQR() {
+      const grid = document.getElementById('qrGrid');
+      let html = '';
+      for (let i = 0; i < 81; i++) {
+        const row = Math.floor(i / 9), col = i % 9;
+        const inFinder = (row < 3 && col < 3) || (row < 3 && col >= 6) || (row >= 6 && col < 3);
+        html += `<div class="qr-cell${(!inFinder && Math.random() > 0.55) ? ' dark' : ''}"></div>`;
+      }
+      grid.innerHTML = html;
+    })();
+  }, 600);
+}
+
+function previewJoin() {
+  window.location.href = 'join.html';
+}
+</script>
+
+</body>
+</html>

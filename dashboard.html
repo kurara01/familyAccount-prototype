@@ -116,6 +116,81 @@
     font-size: var(--fs-sm); color: var(--color-secondary);
     margin-bottom: var(--sp-sm);
   }
+
+  /* --- 限额标识 --- */
+  .limit-indicator {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-warm-bg);
+    border: 1px dashed #D8CBB8;
+    font-size: 11px;
+    color: var(--color-title);
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 6px;
+    white-space: nowrap;
+  }
+  .limit-indicator:hover { background: #E8E1D8; }
+
+  /* --- 已使用额度 --- */
+  .limit-used {
+    font-size: 11px;
+    color: var(--color-secondary);
+    margin-top: 4px;
+    text-align: right;
+    display: none;
+  }
+  .limit-used .used-amount {
+    font-family: var(--font-num);
+    font-weight: 600;
+    color: var(--color-title);
+  }
+
+  /* --- 限额说明弹窗 --- */
+  .limit-info-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .limit-info-overlay.show { display: flex; }
+  .limit-info-card {
+    width: 290px;
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-lg) var(--sp-md);
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+  }
+  .limit-info-card h3 {
+    font-size: var(--fs-md);
+    color: var(--color-title);
+    margin-bottom: var(--sp-md);
+  }
+  .limit-info-body { text-align: left; margin-bottom: var(--sp-md); }
+  .limit-info-current {
+    background: var(--color-warm-bg);
+    padding: var(--sp-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-base);
+    color: var(--color-title);
+    margin-bottom: var(--sp-sm);
+  }
+  .limit-info-body p {
+    font-size: var(--fs-sm);
+    color: var(--color-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--sp-xs);
+  }
+  .limit-info-note {
+    color: var(--color-placeholder) !important;
+    font-size: var(--fs-xs) !important;
+    margin-top: var(--sp-xs);
+  }
 </style>
 </head>
 <body>
@@ -144,6 +219,12 @@
         </div>
         <div style="text-align:right;">
           <div class="tag" style="background:#111;color:#fff;font-size:14px;padding:4px 14px;border-radius:999px;">快乐一家</div>
+          <div class="limit-indicator" id="limitIndicator" style="display:none;" onclick="showLimitInfo(event)">
+            ⓘ 限额 ¥<span id="limitAmountDisplay">200</span>/<span id="limitPeriodDisplay">日</span>
+          </div>
+          <div class="limit-used" id="limitUsed">
+            已使用 <span class="used-amount" id="limitUsedAmount">¥0</span>
+          </div>
         </div>
       </div>
       <div class="balance-meta">
@@ -249,6 +330,26 @@
     </div>
 
   </div><!-- /page-content -->
+
+  <!-- 限额说明弹窗 -->
+  <div class="limit-info-overlay" id="limitInfoOverlay" onclick="closeLimitInfo(event)">
+    <div class="limit-info-card" onclick="event.stopPropagation()">
+      <h3>💡 储值使用限额说明</h3>
+      <div class="limit-info-body">
+        <div class="limit-info-current">
+          当前设置：<strong>每<span id="limitInfoPeriod">日</span>限额 ¥<span id="limitInfoAmount">200</span></strong>
+        </div>
+        <div class="limit-info-current" style="margin-top:8px;">
+          本<span id="limitInfoPeriod2">日</span>已使用：<strong style="color:var(--color-title);">¥<span id="limitInfoUsed">0</span></strong>
+        </div>
+        <p>每名家庭成员从<strong>他人储值金</strong>扣减的合计金额不超过此限额。</p>
+        <p>超过限额后，本周期内不再从其他成员储值金扣减，差额需自行支付。</p>
+        <p class="limit-info-note">不影响消费人自己储值卡的正常使用。</p>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="closeLimitInfo()">知道了</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -264,6 +365,54 @@ function toggleMembers(btn) {
   rows.forEach(r => r.classList.toggle('show', !expanded));
   btn.innerHTML = expanded ? '<span>展开更多</span><span style="font-size:10px;">▾</span>' : '<span>收起</span><span style="font-size:10px;">▴</span>';
 }
+
+// --- 限额标识 ---
+function loadLimitSettings() {
+  try {
+    var raw = localStorage.getItem('familyAccount_limit');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function initLimitIndicator() {
+  var settings = loadLimitSettings();
+  var indicator = document.getElementById('limitIndicator');
+  var usedRow = document.getElementById('limitUsed');
+  if (!settings || settings.mode !== 'limited') {
+    indicator.style.display = 'none';
+    usedRow.style.display = 'none';
+    return;
+  }
+  var periodMap = { day: '日', week: '周', month: '月' };
+  document.getElementById('limitAmountDisplay').textContent = settings.amount;
+  document.getElementById('limitPeriodDisplay').textContent = periodMap[settings.period] || '日';
+  indicator.style.display = 'inline-flex';
+
+  // 已使用额度（模拟数据，实际应从后端获取）
+  var used = settings.used || 0;
+  document.getElementById('limitUsedAmount').textContent = '¥' + used;
+  usedRow.style.display = 'block';
+}
+
+function showLimitInfo(e) {
+  e.stopPropagation();
+  var settings = loadLimitSettings();
+  if (!settings) return;
+  var periodMap = { day: '日', week: '周', month: '月' };
+  document.getElementById('limitInfoAmount').textContent = settings.amount;
+  document.getElementById('limitInfoPeriod').textContent = periodMap[settings.period] || '日';
+  document.getElementById('limitInfoPeriod2').textContent = periodMap[settings.period] || '日';
+  document.getElementById('limitInfoUsed').textContent = settings.used || 0;
+  document.getElementById('limitInfoOverlay').classList.add('show');
+}
+
+function closeLimitInfo(e) {
+  if (e && e.target !== document.getElementById('limitInfoOverlay')) return;
+  document.getElementById('limitInfoOverlay').classList.remove('show');
+}
+
+initLimitIndicator();
 </script>
 
 </body>

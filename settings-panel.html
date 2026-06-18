@@ -278,6 +278,27 @@
     border-color: var(--color-primary);
   }
   .identity-option.none { color: var(--color-placeholder); font-style: italic; }
+  .identity-custom-area {
+    border-top: 1px solid var(--color-divider);
+    padding-top: var(--sp-sm);
+    margin-top: var(--sp-xs);
+  }
+  .identity-custom-input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-divider);
+    font-size: var(--fs-sm);
+    text-align: center;
+    font-family: var(--font-cn);
+    box-sizing: border-box;
+  }
+  .identity-custom-input:focus { border-color: var(--color-primary); outline: none; }
+  .identity-custom-char-count {
+    font-size: 11px;
+    color: var(--color-placeholder);
+    margin: 4px 0 var(--sp-sm);
+  }
 
   /* 限额模式切换（两段式） */
   .limit-mode-toggle {
@@ -558,6 +579,10 @@
             <button class="btn btn-sm btn-primary" onclick="saveLimit()">保存</button>
           </div>
           <div class="limit-hint" id="limitHint">设置后，每日每名家庭成员从他人储值金扣减的合计金额不超过 ¥200</div>
+          <div style="margin-top:var(--sp-sm);padding:var(--sp-sm);background:var(--color-warm-bg);border-radius:var(--radius-md);">
+            <span style="font-size:var(--fs-sm);color:var(--color-secondary);">本<span id="limitUsedPeriod">日</span>已使用</span>
+            <span class="num" id="limitUsedDisplay" style="font-size:var(--fs-md);font-weight:700;color:var(--color-title);margin-left:var(--sp-xs);">¥0</span>
+          </div>
         </div>
       </div>
     </div>
@@ -618,6 +643,10 @@
       <h3>选择家庭身份</h3>
       <div class="member-name" id="identityPickerName"></div>
       <div class="identity-options" id="identityOptions"></div>
+      <div class="identity-custom-area">
+        <input class="identity-custom-input" id="identityCustomInput" placeholder="自定义，不超过3个字" maxlength="3" oninput="onCustomInput(this)">
+        <div class="identity-custom-char-count"><span id="customCharCount">0</span>/3</div>
+      </div>
       <button class="btn btn-primary btn-block" onclick="closeIdentityPicker()">确定</button>
     </div>
   </div>
@@ -650,6 +679,8 @@ function showIdentityPicker(name, tagEl) {
     const cls = 'identity-option' + (id === current ? ' selected' : '') + (id === '不设置' ? ' none' : '');
     return `<span class="${cls}" onclick="selectIdentity(this, '${id}')">${id}</span>`;
   }).join('');
+  document.getElementById('identityCustomInput').value = '';
+  document.getElementById('customCharCount').textContent = '0';
   document.getElementById('identityPicker').classList.add('show');
 }
 
@@ -657,14 +688,32 @@ function selectIdentity(el, identity) {
   document.querySelectorAll('.identity-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
   el._selectedIdentity = identity;
+  // 选了预设，清空自定义输入
+  document.getElementById('identityCustomInput').value = '';
+  document.getElementById('customCharCount').textContent = '0';
+}
+
+function onCustomInput(input) {
+  document.getElementById('customCharCount').textContent = input.value.length;
+  // 输入了自定义内容，取消预设选中
+  if (input.value.length > 0) {
+    document.querySelectorAll('.identity-option').forEach(o => o.classList.remove('selected'));
+  }
 }
 
 function closeIdentityPicker() {
-  const selected = document.querySelector('.identity-option.selected');
-  if (selected && currentIdentityTarget) {
-    const identity = selected._selectedIdentity || selected.textContent.trim();
-    currentIdentityTarget.textContent = identity === '不设置' ? '未设置' : identity;
-    currentIdentityTarget.style.color = identity === '不设置' ? 'var(--color-placeholder)' : '';
+  const customValue = document.getElementById('identityCustomInput').value.trim();
+  if (customValue && currentIdentityTarget) {
+    // 有自定义内容，优先使用
+    currentIdentityTarget.textContent = customValue;
+    currentIdentityTarget.style.color = '';
+  } else {
+    const selected = document.querySelector('.identity-option.selected');
+    if (selected && currentIdentityTarget) {
+      const identity = selected._selectedIdentity || selected.textContent.trim();
+      currentIdentityTarget.textContent = identity === '不设置' ? '未设置' : identity;
+      currentIdentityTarget.style.color = identity === '不设置' ? 'var(--color-placeholder)' : '';
+    }
   }
   document.getElementById('identityPicker').classList.remove('show');
   currentIdentityTarget = null;
@@ -720,6 +769,21 @@ let limitAmount = 200;
 
 const PERIOD_LABELS = { day: '每日', week: '每周', month: '每月' };
 
+function saveLimitToStorage() {
+  // preserve existing used value; seed demo data if absent
+  var existing = {};
+  try {
+    var raw = localStorage.getItem('familyAccount_limit');
+    if (raw) existing = JSON.parse(raw);
+  } catch(e) {}
+  localStorage.setItem('familyAccount_limit', JSON.stringify({
+    mode: limitMode,
+    period: limitPeriod,
+    amount: limitAmount,
+    used: existing.used != null ? existing.used : 120
+  }));
+}
+
 function switchLimitMode(mode) {
   limitMode = mode;
   // 切换两段式按钮
@@ -731,10 +795,12 @@ function switchLimitMode(mode) {
   if (mode === 'limited') {
     config.classList.add('show');
     updateLimitHint();
+    updateUsedDisplay();
   } else {
     config.classList.remove('show');
     updateSummary();
   }
+  saveLimitToStorage();
 }
 
 function switchPeriod(period) {
@@ -743,6 +809,19 @@ function switchPeriod(period) {
     el.classList.toggle('active', el.dataset.period === period);
   });
   updateLimitHint();
+  updateUsedDisplay();
+}
+
+function updateUsedDisplay() {
+  var periodMapShort = { day: '日', week: '周', month: '月' };
+  document.getElementById('limitUsedPeriod').textContent = periodMapShort[limitPeriod] || '日';
+  var stored = {};
+  try {
+    var raw = localStorage.getItem('familyAccount_limit');
+    if (raw) stored = JSON.parse(raw);
+  } catch(e) {}
+  var used = stored.used || 0;
+  document.getElementById('limitUsedDisplay').textContent = '¥' + used;
 }
 
 function updateLimitHint() {
@@ -772,10 +851,36 @@ function saveLimit() {
   }
   updateLimitHint();
   updateSummary();
+  saveLimitToStorage();
   toggleLimitSection();
 }
 
-// 初始化限额显示
+// --- 从 localStorage 恢复限额设置 ---
+function loadLimitFromStorage() {
+  try {
+    var raw = localStorage.getItem('familyAccount_limit');
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    limitMode = data.mode || 'unlimited';
+    limitPeriod = data.period || 'day';
+    limitAmount = data.amount || 200;
+    // 同步 UI
+    if (limitMode === 'limited') {
+      document.querySelectorAll('.limit-mode-option').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.mode === 'limited');
+      });
+      document.getElementById('limitConfig').classList.add('show');
+      document.getElementById('limitInput').value = limitAmount;
+      document.querySelectorAll('.period-option').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.period === limitPeriod);
+      });
+      updateLimitHint();
+      updateUsedDisplay();
+    }
+  } catch(e) {}
+}
+
+loadLimitFromStorage();
 updateSummary();
 
 // --- 审批 ---

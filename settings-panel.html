@@ -579,10 +579,6 @@
             <button class="btn btn-sm btn-primary" onclick="saveLimit()">保存</button>
           </div>
           <div class="limit-hint" id="limitHint">设置后，每日每名家庭成员从他人储值金扣减的合计金额不超过 ¥200</div>
-          <div style="margin-top:var(--sp-sm);padding:var(--sp-sm);background:var(--color-warm-bg);border-radius:var(--radius-md);">
-            <span style="font-size:var(--fs-sm);color:var(--color-secondary);">本<span id="limitUsedPeriod">日</span>已使用</span>
-            <span class="num" id="limitUsedDisplay" style="font-size:var(--fs-md);font-weight:700;color:var(--color-title);margin-left:var(--sp-xs);">¥0</span>
-          </div>
         </div>
       </div>
     </div>
@@ -795,7 +791,6 @@ function switchLimitMode(mode) {
   if (mode === 'limited') {
     config.classList.add('show');
     updateLimitHint();
-    updateUsedDisplay();
   } else {
     config.classList.remove('show');
     updateSummary();
@@ -809,20 +804,8 @@ function switchPeriod(period) {
     el.classList.toggle('active', el.dataset.period === period);
   });
   updateLimitHint();
-  updateUsedDisplay();
 }
 
-function updateUsedDisplay() {
-  var periodMapShort = { day: '日', week: '周', month: '月' };
-  document.getElementById('limitUsedPeriod').textContent = periodMapShort[limitPeriod] || '日';
-  var stored = {};
-  try {
-    var raw = localStorage.getItem('familyAccount_limit');
-    if (raw) stored = JSON.parse(raw);
-  } catch(e) {}
-  var used = stored.used || 0;
-  document.getElementById('limitUsedDisplay').textContent = '¥' + used;
-}
 
 function updateLimitHint() {
   const hint = document.getElementById('limitHint');
@@ -875,7 +858,6 @@ function loadLimitFromStorage() {
         el.classList.toggle('active', el.dataset.period === limitPeriod);
       });
       updateLimitHint();
-      updateUsedDisplay();
     }
   } catch(e) {}
 }

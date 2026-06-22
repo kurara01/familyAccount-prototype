@@ -82,10 +82,24 @@
     font-size: 16px;
     flex-shrink: 0;
   }
+  .tx-preview-item.refund .tx-preview-icon {
+    background: rgba(34,139,34,0.1);
+  }
   .tx-preview-info { flex: 1; min-width: 0; }
   .tx-preview-title { font-size: var(--fs-base); color: var(--color-title); }
   .tx-preview-detail { font-size: var(--fs-xs); color: var(--color-secondary); margin-top: 2px; }
+  .tx-preview-detail.refund { color: #228B22; }
   .tx-preview-date { font-size: var(--fs-sm); color: var(--color-placeholder); white-space: nowrap; flex-shrink: 0; }
+  .tx-preview-refund-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    font-size: 10px;
+    font-weight: 500;
+    background: rgba(34,139,34,0.1);
+    color: #228B22;
+    margin-left: 4px;
+  }
 
   .view-more {
     color: var(--color-title); font-size: var(--fs-sm);
@@ -142,6 +156,18 @@
     display: none;
   }
   .limit-used .used-amount {
+    font-family: var(--font-num);
+    font-weight: 600;
+    color: var(--color-title);
+  }
+  .limit-remaining {
+    font-size: 11px;
+    color: var(--color-secondary);
+    margin-top: 2px;
+    text-align: right;
+    display: none;
+  }
+  .limit-remaining .remaining-amount {
     font-family: var(--font-num);
     font-weight: 600;
     color: var(--color-title);
@@ -224,6 +250,9 @@
           </div>
           <div class="limit-used" id="limitUsed">
             已使用 <span class="used-amount" id="limitUsedAmount">¥0</span>
+          </div>
+          <div class="limit-remaining" id="limitRemaining">
+            剩余可用 <span class="remaining-amount" id="limitRemainingAmount">¥200</span>
           </div>
         </div>
       </div>
@@ -314,11 +343,11 @@
         </div>
         <div class="tx-preview-date">6月13日</div>
       </div>
-      <div class="tx-preview-item">
-        <div class="tx-preview-icon">🛒</div>
+      <div class="tx-preview-item refund">
+        <div class="tx-preview-icon">↩</div>
         <div class="tx-preview-info">
-          <div class="tx-preview-title">大刚 (爷爷) 消费 ¥150</div>
-          <div class="tx-preview-detail">使用家庭储值余额 ¥150</div>
+          <div class="tx-preview-title">大刚 (爷爷) 消费退款 ¥150<span class="tx-preview-refund-badge">退款</span></div>
+          <div class="tx-preview-detail">家庭储值余额退回 ¥150</div>
         </div>
         <div class="tx-preview-date">6月12日</div>
       </div>
@@ -341,6 +370,9 @@
         </div>
         <div class="limit-info-current" style="margin-top:8px;">
           本<span id="limitInfoPeriod2">日</span>已使用：<strong style="color:var(--color-title);">¥<span id="limitInfoUsed">0</span></strong>
+        </div>
+        <div class="limit-info-current" style="margin-top:8px;">
+          本<span id="limitInfoPeriod3">日</span>剩余可用：<strong style="color:var(--color-title);">¥<span id="limitInfoRemaining">200</span></strong>
         </div>
         <p>每名家庭成员从<strong>他人储值金</strong>扣减的合计金额不超过此限额。</p>
         <p>超过限额后，本周期内不再从其他成员储值金扣减，差额需自行支付。</p>
@@ -391,8 +423,12 @@ function initLimitIndicator() {
 
   // 已使用额度（模拟数据，实际应从后端获取）
   var used = settings.used || 0;
+  var remaining = settings.amount - used;
   document.getElementById('limitUsedAmount').textContent = '¥' + used;
   usedRow.style.display = 'block';
+  var remainingRow = document.getElementById('limitRemaining');
+  document.getElementById('limitRemainingAmount').textContent = '¥' + remaining;
+  remainingRow.style.display = 'block';
 }
 
 function showLimitInfo(e) {
@@ -403,7 +439,9 @@ function showLimitInfo(e) {
   document.getElementById('limitInfoAmount').textContent = settings.amount;
   document.getElementById('limitInfoPeriod').textContent = periodMap[settings.period] || '日';
   document.getElementById('limitInfoPeriod2').textContent = periodMap[settings.period] || '日';
+  document.getElementById('limitInfoPeriod3').textContent = periodMap[settings.period] || '日';
   document.getElementById('limitInfoUsed').textContent = settings.used || 0;
+  document.getElementById('limitInfoRemaining').textContent = (settings.amount - (settings.used || 0));
   document.getElementById('limitInfoOverlay').classList.add('show');
 }
 

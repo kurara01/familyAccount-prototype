@@ -58,6 +58,37 @@
   .tx-breakdown-row .amount { font-family: var(--font-num); font-weight: 500; }
   .tx-breakdown-row .amount.self { color: var(--color-secondary); }
 
+  /* 退款样式 */
+  .tx-item.refund {
+    border-left: none;
+  }
+  .tx-item.refund .tx-payer {
+    color: var(--color-title);
+  }
+  .tx-item.refund .tx-family-used {
+    color: var(--color-title);
+  }
+  .tx-refund-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    background: rgba(34,139,34,0.1);
+    color: #228B22;
+    margin-left: var(--sp-xs);
+  }
+  .tx-breakdown-row .amount.refund {
+    color: #228B22;
+    font-family: var(--font-num);
+    font-weight: 500;
+  }
+  .tx-refund-source {
+    font-size: var(--fs-xs);
+    color: var(--color-placeholder);
+    margin-bottom: var(--sp-xs);
+  }
+
   .tx-month-header {
     padding: var(--sp-sm) var(--sp-md);
     font-size: var(--fs-sm);
@@ -90,10 +121,36 @@
     border-color: var(--color-primary);
   }
 
-  .empty-tx {
-    text-align: center;
-    padding: 60px var(--sp-md);
+  .tx-order-row {
+    display: flex; align-items: center; gap: var(--sp-xs);
+    font-size: var(--fs-sm);
     color: var(--color-placeholder);
+    margin-top: var(--sp-xs);
+    padding-top: var(--sp-xs);
+  }
+  .tx-order-no {
+    font-family: var(--font-num);
+    color: var(--color-secondary);
+  }
+  .tx-copy-btn {
+    border: none;
+    background: var(--color-bg);
+    color: var(--color-secondary);
+    cursor: pointer;
+    font-size: var(--fs-xs);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+    font-family: var(--font-cn);
+    line-height: 1.4;
+  }
+  .tx-copy-btn:active {
+    color: var(--color-title);
+    background: var(--color-divider);
+  }
+  .tx-copy-btn.copied {
+    color: var(--color-success);
+    background: rgba(34,139,34,0.08);
   }
 </style>
 </head>
@@ -132,6 +189,37 @@
           <span class="amount self">-50.00</span>
         </div>
       </div>
+      <div class="tx-order-row">
+        订单编号 <span class="tx-order-no">20260615143200001</span>
+        <button class="tx-copy-btn" onclick="copyOrderNo(this, '20260615143200001')">复制</button>
+      </div>
+    </div>
+
+    <div class="tx-item refund" data-self-deducted="false">
+      <div class="tx-header">
+        <span class="tx-date">6月14日 09:20</span>
+        <span class="tx-store">九木杂物社 · 来福士店</span>
+      </div>
+      <div class="tx-payer">
+        小明 (爸爸) 消费退款 ¥200.00
+        <span class="tx-refund-badge">退款</span>
+      </div>
+      <div class="tx-family-used">家庭储值余额按原路退回 ¥150.00</div>
+      <div class="tx-breakdown">
+        <div class="tx-breakdown-title">退回明细（按原扣款比例退回各成员储值卡）</div>
+        <div class="tx-breakdown-row">
+          <span class="name">小明 (爸爸)</span>
+          <span class="amount refund">+100.00</span>
+        </div>
+        <div class="tx-breakdown-row">
+          <span class="name">小红 (妈妈)</span>
+          <span class="amount refund">+50.00</span>
+        </div>
+      </div>
+      <div class="tx-order-row">
+        订单编号 <span class="tx-order-no">20260615143200001</span>
+        <button class="tx-copy-btn" onclick="copyOrderNo(this, '20260615143200001')">复制</button>
+      </div>
     </div>
 
     <div class="tx-item" data-self-deducted="false">
@@ -147,6 +235,10 @@
           <span class="name">小红 (妈妈)</span>
           <span class="amount self">-80.00</span>
         </div>
+      </div>
+      <div class="tx-order-row">
+        订单编号 <span class="tx-order-no">20260613101500002</span>
+        <button class="tx-copy-btn" onclick="copyOrderNo(this, '20260613101500002')">复制</button>
       </div>
     </div>
 
@@ -164,31 +256,42 @@
           <span class="amount self">-150.00</span>
         </div>
       </div>
+      <div class="tx-order-row">
+        订单编号 <span class="tx-order-no">20260612160800003</span>
+        <button class="tx-copy-btn" onclick="copyOrderNo(this, '20260612160800003')">复制</button>
+      </div>
     </div>
 
     <div class="tx-month-header">2026年5月</div>
 
-    <div class="tx-item" data-self-deducted="true">
+    <div class="tx-item refund" data-self-deducted="false">
       <div class="tx-header">
         <span class="tx-date">5月28日 12:20</span>
         <span class="tx-store">九木杂物社 · 来福士店</span>
       </div>
-      <div class="tx-payer">小明 (爸爸) 消费 ¥350.00</div>
-      <div class="tx-family-used">其中使用家庭储值余额 ¥350.00</div>
+      <div class="tx-payer">
+        小明 (爸爸) 消费退款 ¥350.00
+        <span class="tx-refund-badge">退款</span>
+      </div>
+      <div class="tx-family-used">家庭储值余额按原路退回 ¥350.00</div>
       <div class="tx-breakdown">
-        <div class="tx-breakdown-title">家庭储值余额扣款明细</div>
+        <div class="tx-breakdown-title">退回明细（按原扣款比例退回各成员储值卡）</div>
         <div class="tx-breakdown-row">
           <span class="name">小明 (爸爸)</span>
-          <span class="amount self">-200.00</span>
+          <span class="amount refund">+200.00</span>
         </div>
         <div class="tx-breakdown-row">
           <span class="name">小红 (妈妈)</span>
-          <span class="amount self">-100.00</span>
+          <span class="amount refund">+100.00</span>
         </div>
         <div class="tx-breakdown-row">
           <span class="name">大刚 (爷爷)</span>
-          <span class="amount self">-50.00</span>
+          <span class="amount refund">+50.00</span>
         </div>
+      </div>
+      <div class="tx-order-row">
+        订单编号 <span class="tx-order-no">20260528122000004</span>
+        <button class="tx-copy-btn" onclick="copyOrderNo(this, '20260528122000004')">复制</button>
       </div>
     </div>
 
@@ -201,27 +304,25 @@
 </div>
 
 <script>
-function filter(chip) {
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  chip.classList.add('active');
-  const type = chip.textContent.trim();
-  const items = document.querySelectorAll('.tx-item[data-self-deducted]');
-  const empty = document.getElementById('emptyState');
-  let visible = 0;
-  items.forEach(item => {
-    if (type === '全部') {
-      item.style.display = 'block';
-      visible++;
-    } else if (type === '只看自己账户') {
-      if (item.dataset.selfDeducted === 'true') {
-        item.style.display = 'block';
-        visible++;
-      } else {
-        item.style.display = 'none';
-      }
-    }
-  });
-  empty.style.display = visible === 0 ? 'block' : 'none';
+function copyOrderNo(btn, orderNo) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(orderNo).then(function() {
+      btn.textContent = '已复制';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = '复制'; btn.classList.remove('copied'); }, 1500);
+    });
+  } else {
+    // fallback
+    var ta = document.createElement('textarea');
+    ta.value = orderNo;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '已复制';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = '复制'; btn.classList.remove('copied'); }, 1500);
+  }
 }
 </script>
 
